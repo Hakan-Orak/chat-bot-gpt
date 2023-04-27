@@ -25,8 +25,28 @@ function ParagrapheContentRight({text = '...'}) {
     )
 }
 
-function ButtonsExample({chatsList, setChatList}) {
-    const [inputValue, setInputValue] = useState('');
+function ButtonsExample({setDataIsReady,setBotList, botList, setChatList, inputValue, setInputValue}) {
+
+    const testosta = () => {
+        setChatList(chatsList => [...chatsList, inputValue]);
+        setDataIsReady(false);
+
+        console.log('on est dedans')
+        if(inputValue != '') {
+            postData('http://82.165.75.208:8083/morpion/chatbot/gpt3/chat/answer', inputValue)
+                .then((data) => {
+                    setBotList(botList => [...botList, data])
+                    botList.push(data);
+                    console.log(botList);
+                    console.log('new data');
+                    console.log(data);
+                })
+                .finally(() => {
+                    setDataIsReady(true);
+                });
+        }
+    }
+
     return (
         <>
             <InputGroup className="mb-3">
@@ -35,13 +55,11 @@ function ButtonsExample({chatsList, setChatList}) {
                     aria-label="Envoyez votre message"
                     aria-describedby="basic-addon2"
                     onChange={(event => {
-                        console.log('lolali')
-                        console.log(event.target.value)
                         setInputValue(event.target.value)
                     })}
                 />
                 <Button onClick={() => {
-                    setChatList(chatsList => [...chatsList, inputValue])
+                    testosta();
                 }} variant="outline-secondary" id="button-addon2">
                     Button
                 </Button>
@@ -50,9 +68,7 @@ function ButtonsExample({chatsList, setChatList}) {
     );
 }
 
-const Conversation = ({chatsList}) => {
-    console.log("chatsList")
-    console.log(chatsList)
+const Conversation = ({chatsList, botList, dataIsReady}) => {
     let i = 0;
     return (
         <>
@@ -61,7 +77,9 @@ const Conversation = ({chatsList}) => {
                     return (
                         <>
                             <ParagrapheContentLeft text={chat}/>
-                            <ParagrapheContentRight text='ton papouné'/>
+                            {dataIsReady && (
+                                <ParagrapheContentRight text={botList[i]} />
+                            )}
                         </>
                     )
                 })
@@ -70,28 +88,36 @@ const Conversation = ({chatsList}) => {
     )
 }
 
-const Accueil = () => {
-    const [chatsList, setChatsList] = useState([]);
-    // chatsList.push('salut');
-    // chatsList.push('ton beau père')
+// https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
+async function postData(url = "", data = '') {
 
-    useEffect(() => {
-        fetch('http://82.165.75.208:8083/morpion/chat/talk', {
-            method: 'POST',
-            headers: {
-                "access-control-allow-origin" : "*",
-            },
-            body: 'comment tu vas ?'
-        })
-            .then(response => {
-                console.log('par pitié macron')
-                console.log(response)
-            })
-    }, [chatsList])
+    console.log('la data')
+    console.log(data)
+    // Default options are marked with *
+    const response = await fetch(url, {
+        method: "POST", // *GET, POST, PUT, DELETE, etc.
+        // mode: "cors", // no-cors, *cors, same-origin
+        // cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+        // credentials: "same-origin", // include, *same-origin, omit
+        headers: {
+            "Content-Type": "text/plain;charset=UTF-8",
+            // 'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: data.toString(), // body data type must match "Content-Type" header
+    });
+    return response.text(); // parses JSON response into native JavaScript objects
+}
+
+const Accueil = () => {
+    const [dataIsReady, setDataIsReady] = useState(true);
+    const [chatsList, setChatsList] = useState([]);
+    const [botList, setBotList] = useState([]);
+    const [inputValue, setInputValue] = useState('');
+
     return (
         <div style={{backgroundColor: '#F1F6F9', height: '100vh'}}>
-            <Conversation chatsList={chatsList} />
-            <ButtonsExample chatsList={chatsList} setChatList={setChatsList}/>
+            <Conversation chatsList={chatsList} botList={botList} dataIsReady={dataIsReady} />
+            <ButtonsExample setBotList={setBotList} botList={botList} setDataIsReady={setDataIsReady} inputValue={inputValue} setInputValue={setInputValue} setChatList={setChatsList} />
         </div>
     )
 };
