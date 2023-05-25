@@ -36,7 +36,7 @@ function ButtonsExample({setDataIsReady,setBotList, botList, setChatList, inputV
             postData('http://82.165.75.208:8083/morpion/chatbot/gpt3/chat/answer', inputValue)
                 .then((data) => {
                     setBotList(botList => [...botList, data])
-                    botList.push(data);
+                    // botList.push(data);
                     console.log(botList);
                     console.log('new data');
                     console.log(data);
@@ -74,7 +74,8 @@ const Conversation = ({chatsList, botList, dataIsReady}) => {
         <>
             {
                 chatsList.map(chat => {
-                    return (
+
+                    const testato = (
                         <>
                             <ParagrapheContentLeft text={chat}/>
                             {dataIsReady && (
@@ -82,6 +83,9 @@ const Conversation = ({chatsList, botList, dataIsReady}) => {
                             )}
                         </>
                     )
+
+                    i++;
+                    return testato;
                 })
             }
         </>
